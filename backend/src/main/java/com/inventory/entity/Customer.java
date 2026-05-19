@@ -1,6 +1,8 @@
 package com.inventory.entity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 
 @Entity @Table(name="customers") @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -10,7 +12,7 @@ public class Customer {
     @Column(unique=true) private String email;
     private String phone;
     private String address;
-    @Enumerated(EnumType.STRING) private CustomerType type = CustomerType.RETAIL;
+    @JdbcTypeCode(SqlTypes.VARCHAR) @Enumerated(EnumType.STRING) private CustomerType type = CustomerType.RETAIL;
     @Column(updatable=false) private LocalDateTime createdAt;
     @PrePersist void prePersist(){ createdAt=LocalDateTime.now(); }
 }

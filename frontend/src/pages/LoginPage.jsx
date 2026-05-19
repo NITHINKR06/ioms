@@ -15,8 +15,8 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const res = await authApi.login(form)
-      const { accessToken, user } = res.data.data
-      login(accessToken, user)
+      const { accessToken, refreshToken, user } = res.data.data
+      login(accessToken, user, refreshToken)
       toast.success('Welcome back!')
       navigate('/dashboard')
     } catch (err) {

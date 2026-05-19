@@ -1,20 +1,59 @@
 import axios from 'axios'
 
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
+  baseURL,
   headers: { 'Content-Type': 'application/json' }
 })
 
+const setAuthHeader = (accessToken) => {
+  if (accessToken) api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
+  else delete api.defaults.headers.common['Authorization']
+}
+
 const token = localStorage.getItem('token')
-if (token) api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+if (token) setAuthHeader(token)
 
 api.interceptors.response.use(
   res => res,
-  err => {
+  async err => {
+    const originalRequest = err.config
+
     if (err.response?.status === 401) {
+      const refreshToken = localStorage.getItem('refreshToken')
+      const isAuthRequest = originalRequest?.url?.includes('/api/v1/auth/')
+
+      if (!isAuthRequest && refreshToken && !originalRequest?._retry) {
+        originalRequest._retry = true
+        try {
+          const refreshRes = await axios.post(`${baseURL}/api/v1/auth/refresh`, { refreshToken })
+          const { accessToken, refreshToken: newRefreshToken } = refreshRes.data?.data || {}
+
+          if (accessToken) {
+            localStorage.setItem('token', accessToken)
+            setAuthHeader(accessToken)
+            originalRequest.headers = originalRequest.headers || {}
+            originalRequest.headers['Authorization'] = `Bearer ${accessToken}`
+          }
+          if (newRefreshToken) localStorage.setItem('refreshToken', newRefreshToken)
+
+          return api(originalRequest)
+        } catch (refreshErr) {
+          localStorage.removeItem('token')
+          localStorage.removeItem('refreshToken')
+          setAuthHeader(null)
+          window.location.href = '/login'
+          return Promise.reject(refreshErr)
+        }
+      }
+
       localStorage.removeItem('token')
+      localStorage.removeItem('refreshToken')
+      setAuthHeader(null)
       window.location.href = '/login'
     }
+
     return Promise.reject(err)
   }
 )
@@ -25,6 +64,8 @@ export default api
 export const authApi = {
   login: (data) => api.post('/api/v1/auth/login', data),
   register: (data) => api.post('/api/v1/auth/register', data),
+  refresh: (refreshToken) => api.post('/api/v1/auth/refresh', { refreshToken }),
+  logout: (refreshToken) => api.post('/api/v1/auth/logout', { refreshToken }),
 }
 
 // Products

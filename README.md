@@ -39,37 +39,48 @@ A full-stack, production-grade Inventory and Order Management System built with 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Docker & Docker Compose
-- (For local dev) Java 21, Maven, Node 20, MySQL 8
+- Docker Desktop (recommended on Windows; WSL2 backend)
+- (For local dev without Docker) Java 21, Maven, Node 20, MySQL 8
 
 ### One-Command Docker Start
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/yourname/inventory-system.git
-cd inventory-system
+git clone <your-repo-url>
+cd <repo-folder>
 
-# 2. Copy and configure env
+# 2. (Optional) Copy and configure env (.env is recommended)
 cp .env.example .env
-# Edit .env if needed (defaults work for local dev)
+
+# Windows PowerShell alternative:
+# Copy-Item .env.example .env
+# Windows CMD alternative:
+# copy .env.example .env
 
 # 3. Start everything
-docker-compose up -d
+docker compose up -d --build
 
 # 4. Wait ~60 seconds for MySQL + backend to start
-docker-compose logs -f backend
+docker compose logs -f backend
 ```
 
 Visit:
 - **App**: http://localhost:3000
 - **API Swagger**: http://localhost:8080/swagger-ui.html
-- **phpMyAdmin** (optional): `docker-compose --profile tools up -d` → http://localhost:8081
+- **Backend Health**: http://localhost:8080/actuator/health
+- **phpMyAdmin** (optional): `docker compose --profile tools up -d phpmyadmin` → http://localhost:8081
+
+To reset everything (including the database volume):
+
+```bash
+docker compose down -v
+```
 
 ### Local Development (without Docker)
 
 ```bash
 # Start MySQL (or use Docker for just MySQL)
-docker-compose up -d mysql
+docker compose up -d mysql
 
 # Backend
 cd backend
@@ -103,6 +114,8 @@ All endpoints prefixed with `/api/v1/`. Full interactive docs at `/swagger-ui.ht
 |--------|----------|--------|
 | POST | /auth/login | Public |
 | POST | /auth/register | Public |
+| POST | /auth/refresh | Public |
+| POST | /auth/logout | Public |
 | GET | /products | Auth |
 | POST | /products | Admin/Manager |
 | GET | /orders | Auth |
@@ -117,7 +130,7 @@ All endpoints prefixed with `/api/v1/`. Full interactive docs at `/swagger-ui.ht
 ## 🏗 Project Structure
 
 ```
-inventory-system/
+ioms/
 ├── backend/                    # Spring Boot application
 │   ├── src/main/java/com/inventory/
 │   │   ├── config/             # Security, JWT, OpenAPI config
@@ -171,5 +184,4 @@ inventory-system/
 ---
 
 ## 📄 License
-
-MIT — free to use, modify, and distribute.
+No license file is included yet. Add a `LICENSE` file (e.g., MIT) if you plan to share or reuse this code publicly.

@@ -21,6 +21,8 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: false
         default_batch_fetch_size: 50
+        type:
+          prefer_native_enum_types: false
   flyway:
     enabled: true
     locations: classpath:db/migration

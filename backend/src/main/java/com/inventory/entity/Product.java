@@ -1,6 +1,8 @@
 package com.inventory.entity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -15,7 +17,7 @@ public class Product {
     @Column(nullable=false) private Integer quantityInStock = 0;
     @Column(nullable=false) private Integer reorderLevel = 10;
     private String imageUrl;
-    @Enumerated(EnumType.STRING) private ProductStatus status = ProductStatus.ACTIVE;
+    @JdbcTypeCode(SqlTypes.VARCHAR) @Enumerated(EnumType.STRING) private ProductStatus status = ProductStatus.ACTIVE;
     @ManyToOne @JoinColumn(name="category_id",nullable=false) private Category category;
     @ManyToOne @JoinColumn(name="supplier_id") private Supplier supplier;
     @ManyToOne @JoinColumn(name="created_by") private User createdBy;

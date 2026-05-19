@@ -1,0 +1,17 @@
+spring:
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    clean-on-validation-error: false
+
+logging:
+  level:
+    com.inventory: INFO
+    org.springframework.security: INFO
+
+management:
+  health:
+    mail:
+      enabled: false

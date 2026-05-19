@@ -1,6 +1,8 @@
 package com.inventory.service;
 
+import com.inventory.config.JwtProperties;
 import com.inventory.dto.request.LoginRequest;
+import com.inventory.dto.request.RefreshTokenRequest;
 import com.inventory.dto.request.RegisterRequest;
 import com.inventory.dto.response.AuthResponse;
 import com.inventory.dto.response.UserResponse;
@@ -15,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,6 +28,7 @@ public class AuthService {
     private final RoleRepository roleRepo;
     private final RefreshTokenRepository refreshTokenRepo;
     private final JwtTokenProvider tokenProvider;
+    private final JwtProperties jwtProperties;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authManager;
 
@@ -36,7 +40,9 @@ public class AuthService {
             .orElseThrow();
         List<String> roles = user.getRoles().stream().map(r -> r.getName().name()).collect(Collectors.toList());
         String accessToken = tokenProvider.generateAccessToken(user.getUsername(), roles);
+        String refreshToken = issueRefreshToken(user).getToken();
         return AuthResponse.builder().accessToken(accessToken).tokenType("Bearer")
+            .refreshToken(refreshToken)
             .user(toUserResponse(user)).build();
     }
 
@@ -55,8 +61,57 @@ public class AuthService {
         user = userRepo.save(user);
         List<String> roles = List.of(RoleName.ROLE_STAFF.name());
         String token = tokenProvider.generateAccessToken(user.getUsername(), roles);
+        String refreshToken = issueRefreshToken(user).getToken();
         return AuthResponse.builder().accessToken(token).tokenType("Bearer")
+            .refreshToken(refreshToken)
             .user(toUserResponse(user)).build();
+    }
+
+    @Transactional
+    public AuthResponse refresh(RefreshTokenRequest req) {
+        RefreshToken token = refreshTokenRepo.findByTokenAndRevokedFalse(req.getRefreshToken())
+            .orElseThrow(() -> new TokenRefreshException("Invalid refresh token"));
+
+        if (token.getExpiryDate().isBefore(LocalDateTime.now())) {
+            token.setRevoked(true);
+            refreshTokenRepo.save(token);
+            throw new TokenRefreshException("Refresh token expired");
+        }
+
+        User user = token.getUser();
+        token.setRevoked(true);
+        refreshTokenRepo.save(token);
+
+        List<String> roles = user.getRoles().stream().map(r -> r.getName().name()).collect(Collectors.toList());
+        String accessToken = tokenProvider.generateAccessToken(user.getUsername(), roles);
+        String newRefreshToken = issueRefreshToken(user).getToken();
+
+        return AuthResponse.builder()
+            .accessToken(accessToken)
+            .refreshToken(newRefreshToken)
+            .tokenType("Bearer")
+            .user(toUserResponse(user))
+            .build();
+    }
+
+    @Transactional
+    public void logout(RefreshTokenRequest req) {
+        refreshTokenRepo.findByTokenAndRevokedFalse(req.getRefreshToken())
+            .ifPresent(token -> {
+                token.setRevoked(true);
+                refreshTokenRepo.save(token);
+            });
+    }
+
+    private RefreshToken issueRefreshToken(User user) {
+        refreshTokenRepo.deleteByUser(user);
+        RefreshToken refreshToken = RefreshToken.builder()
+            .user(user)
+            .token(UUID.randomUUID().toString())
+            .expiryDate(LocalDateTime.now().plus(Duration.ofMillis(jwtProperties.getRefreshTokenExpiryMs())))
+            .revoked(false)
+            .build();
+        return refreshTokenRepo.save(refreshToken);
     }
 
     private UserResponse toUserResponse(User user) {

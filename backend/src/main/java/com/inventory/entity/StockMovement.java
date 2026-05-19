@@ -1,13 +1,15 @@
 package com.inventory.entity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 
 @Entity @Table(name="stock_movements") @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class StockMovement {
     @Id @GeneratedValue(strategy=GenerationType.IDENTITY) private Long id;
     @ManyToOne @JoinColumn(name="product_id",nullable=false) private Product product;
-    @Enumerated(EnumType.STRING) @Column(nullable=false) private MovementType type;
+    @JdbcTypeCode(SqlTypes.VARCHAR) @Enumerated(EnumType.STRING) @Column(nullable=false) private MovementType type;
     @Column(nullable=false) private Integer quantity;
     private Integer quantityBefore;
     private Integer quantityAfter;

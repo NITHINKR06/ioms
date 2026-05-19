@@ -24,4 +24,15 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.ok("Registration successful", authService.register(req)));
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody RefreshTokenRequest req) {
+        return ResponseEntity.ok(ApiResponse.ok("Token refreshed", authService.refresh(req)));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody RefreshTokenRequest req) {
+        authService.logout(req);
+        return ResponseEntity.ok(ApiResponse.ok("Logged out", null));
+    }
 }

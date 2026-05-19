@@ -1,11 +1,12 @@
-FROM eclipse-temurin:21-jdk-alpine AS builder
+FROM maven:3.9.11-eclipse-temurin-21 AS builder
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
-RUN apk add --no-cache maven && mvn clean package -DskipTests -q
+RUN mvn clean package -DskipTests -q
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
+RUN apk add --no-cache curl
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 COPY --from=builder /app/target/*.jar app.jar

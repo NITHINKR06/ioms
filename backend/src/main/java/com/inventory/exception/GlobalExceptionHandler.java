@@ -42,6 +42,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err("Invalid username or password", req));
     }
 
+    @ExceptionHandler(TokenRefreshException.class)
+    public ResponseEntity<ErrorResponse> handleTokenRefresh(TokenRefreshException e, WebRequest req) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err(e.getMessage(), req));
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccess(AccessDeniedException e, WebRequest req) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(err("Access denied", req));
