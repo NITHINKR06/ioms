@@ -1,0 +1,27 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "backend/Dockerfile"
+
+[deploy]
+startCommand = "java -jar app.jar"
+healthcheckPath = "/actuator/health"
+healthcheckTimeout = 120
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[[services]]
+name = "backend"
+
+[services.variables]
+SPRING_PROFILES_ACTIVE = "prod"
+DB_HOST = "${{MySQL.MYSQL_HOST}}"
+DB_PORT = "${{MySQL.MYSQL_PORT}}"
+DB_NAME = "${{MySQL.MYSQL_DATABASE}}"
+DB_USERNAME = "${{MySQL.MYSQL_USER}}"
+DB_PASSWORD = "${{MySQL.MYSQL_PASSWORD}}"
+JWT_SECRET = "${{JWT_SECRET}}"
+MAIL_HOST = "smtp.gmail.com"
+MAIL_PORT = "587"
+MAIL_USERNAME = "${{MAIL_USERNAME}}"
+MAIL_PASSWORD = "${{MAIL_PASSWORD}}"
+CORS_ORIGINS = "${{FRONTEND_URL}}"
