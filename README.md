@@ -102,6 +102,8 @@ npm run dev
 | manager | Manager@123 | Manager — create/edit/reports |
 | staff | Staff@123 | Staff — view and create orders |
 
+Note: The database seed uses a simple password for demo users. If the demo credentials above fail, try `password` for each account (e.g. `admin` / `password`).
+
 > Click any credential row on the login page to auto-fill.
 
 ---
