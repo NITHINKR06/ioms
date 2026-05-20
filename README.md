@@ -1,85 +1,128 @@
-# 📦 InventoryPro — Inventory & Order Management System
+<div align="center">
 
-A full-stack, production-grade Inventory and Order Management System built with Spring Boot 3, MySQL, and React 18.
+<img src="https://img.shields.io/badge/Spring%20Boot-3.2-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" />
+<img src="https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" />
+<img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
+<img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white" />
+<img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
+<img src="https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white" />
+
+<br /><br />
+
+# 📦 InventoryPro
+
+### Production-grade Inventory & Order Management System
+
+*Spring Boot 3 · Java 21 · MySQL 8 · React 18 · Docker*
+
+</div>
 
 ---
 
-## 🛠 Tech Stack
+## Overview
+
+InventoryPro is a full-stack, production-ready inventory and order management system. It handles the complete product lifecycle — from stock tracking with race-condition-safe pessimistic locking, to multi-step order management with transactional rollback, all secured behind JWT-based RBAC.
+
+Built to demonstrate real-world backend engineering: not just CRUD, but atomic transactions, concurrency control, soft deletes, database migrations, and containerized deployment.
+
+---
+
+## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
+|---|---|
 | Backend | Spring Boot 3.2, Java 21, Maven |
-| Security | Spring Security 6, JWT (jjwt 0.12) |
-| Database | MySQL 8.0, Flyway migrations |
+| Security | Spring Security 6, JWT (jjwt 0.12), BCrypt-12 |
 | ORM | Spring Data JPA, Hibernate 6 |
+| Database | MySQL 8.0, Flyway migrations |
 | Frontend | React 18, Vite, React Router v6 |
 | Charts | Recharts |
-| Containerization | Docker, Docker Compose, Nginx |
 | API Docs | Springdoc OpenAPI (Swagger UI) |
+| Containerization | Docker, Docker Compose, Nginx |
 
 ---
 
-## ✨ Features
+## Features
 
-- [x] JWT authentication with role-based access (Admin / Manager / Staff)
-- [x] Full product CRUD with SKU auto-generation and soft delete
-- [x] Stock movement tracking (in / out / adjustment / return) with pessimistic locking
-- [x] Order lifecycle management (Pending → Confirmed → Processing → Shipped → Delivered)
-- [x] Automatic stock deduction on order creation with transactional rollback
-- [x] Stock restoration on order cancellation
-- [x] Dashboard with KPIs, sales charts, and top products
-- [x] Customer and Supplier management
-- [x] Pagination, filtering, and search on all list endpoints
-- [x] Flyway database migrations with seed data
-- [x] Global exception handling with consistent JSON error responses
-- [x] Docker Compose full-stack deployment
+### 🔐 Authentication & Authorization
+- JWT with short-lived access tokens (15 min) + refresh tokens (7 days)
+- Access token stored in memory; refresh token in `httpOnly` cookie
+- Role-based access control: **Admin / Manager / Staff**
+- `@PreAuthorize` guards on all sensitive endpoints
+
+### 📦 Product Management
+- Full CRUD with auto-generated SKUs (`PRD-001`, `PRD-002`, ...)
+- Soft delete — sets `status=INACTIVE` to preserve order history integrity
+- Category and supplier linking
+- Pagination, filtering, and search on all list endpoints
+
+### 🔄 Stock Tracking
+- Movement types: `STOCK_IN`, `STOCK_OUT`, `ADJUSTMENT`, `RETURN`
+- **Pessimistic locking** (`SELECT ... FOR UPDATE`) — prevents race conditions when concurrent orders hit the same product
+- Before/after quantity snapshots on every movement
+- Reference numbers link movements back to orders
+
+### 🛒 Order Lifecycle
+```
+PENDING → CONFIRMED → PROCESSING → SHIPPED → DELIVERED
+                                              ↕
+                                          CANCELLED
+```
+- `@Transactional` on order creation — stock deduction and order record are atomic
+- Stock automatically restored on cancellation
+- Payment status tracking: `UNPAID / PAID / PARTIAL / REFUNDED`
+
+### 📊 Dashboard
+- KPI cards: total products, orders today, revenue, low-stock count
+- Sales charts (Recharts) by day/week/month
+- Top 5 best-selling products
+
+### 👥 Customer & Supplier Management
+- Customer types: `RETAIL / WHOLESALE`
+- Supplier status tracking with product linkage
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
-- Docker Desktop (recommended on Windows; WSL2 backend)
-- (For local dev without Docker) Java 21, Maven, Node 20, MySQL 8
+
+- Docker Desktop (WSL2 backend recommended on Windows)
+- *Or* for local dev: Java 21, Maven, Node 20, MySQL 8
 
 ### One-Command Docker Start
 
 ```bash
-# 1. Clone the repo
-git clone <your-repo-url>
-cd <repo-folder>
+# Clone
+git clone https://github.com/NITHINKR06/ioms.git
+cd ioms
 
-# 2. (Optional) Copy and configure env (.env is recommended)
+# Configure env
 cp .env.example .env
 
-# Windows PowerShell alternative:
-# Copy-Item .env.example .env
-# Windows CMD alternative:
-# copy .env.example .env
-
-# 3. Start everything
+# Start everything
 docker compose up -d --build
 
-# 4. Wait ~60 seconds for MySQL + backend to start
+# Tail backend logs (wait ~60s for MySQL + backend init)
 docker compose logs -f backend
 ```
 
-Visit:
-- **App**: http://localhost:3000
-- **API Swagger**: http://localhost:8080/swagger-ui.html
-- **Backend Health**: http://localhost:8080/actuator/health
-- **phpMyAdmin** (optional): `docker compose --profile tools up -d phpmyadmin` → http://localhost:8081
+| Service | URL |
+|---|---|
+| App | http://localhost:3000 |
+| Swagger UI | http://localhost:8080/swagger-ui.html |
+| Health check | http://localhost:8080/actuator/health |
+| phpMyAdmin *(optional)* | `docker compose --profile tools up -d phpmyadmin` → http://localhost:8081 |
 
-To reset everything (including the database volume):
-
+To reset everything including the DB volume:
 ```bash
 docker compose down -v
 ```
 
-### Local Development (without Docker)
+### Local Dev (without Docker)
 
 ```bash
-# Start MySQL (or use Docker for just MySQL)
+# Start only MySQL via Docker
 docker compose up -d mysql
 
 # Backend
@@ -94,96 +137,143 @@ npm run dev
 
 ---
 
-## 🔐 Default Credentials
-
-| Username | Password | Role |
-|----------|----------|------|
-| admin | Admin@123 | Admin — full access |
-| manager | Manager@123 | Manager — create/edit/reports |
-| staff | Staff@123 | Staff — view and create orders |
-
-Note: The database seed uses a simple password for demo users. If the demo credentials above fail, try `password` for each account (e.g. `admin` / `password`).
+## Default Credentials
 
 > Click any credential row on the login page to auto-fill.
 
+| Username | Password | Role |
+|---|---|---|
+| `admin` | `Admin@123` | Admin — full access |
+| `manager` | `Manager@123` | Manager — create/edit/reports |
+| `staff` | `Staff@123` | Staff — view and create orders |
+
+> If these fail, try `password` for each account (seed data fallback).
+
 ---
 
-## 📡 API Endpoints
+## API Reference
 
-All endpoints prefixed with `/api/v1/`. Full interactive docs at `/swagger-ui.html`.
+All endpoints are prefixed with `/api/v1/`. Full interactive docs at `/swagger-ui.html`.
 
+### Auth
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/auth/login` | Public | Login → returns JWT |
+| `POST` | `/auth/register` | Public | Register new user |
+| `POST` | `/auth/refresh` | Public | Refresh access token |
+| `POST` | `/auth/logout` | Auth | Invalidate token |
+
+### Products
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/products` | Auth | List all (paginated, filterable) |
+| `GET` | `/products/{id}` | Auth | Get by ID |
+| `GET` | `/products/low-stock` | Admin/Manager | Below reorder level |
+| `POST` | `/products` | Admin/Manager | Create product |
+| `PUT` | `/products/{id}` | Admin/Manager | Update product |
+| `DELETE` | `/products/{id}` | Admin | Soft delete |
+
+### Stock
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/stock/movements` | Auth | All movements (paginated) |
+| `POST` | `/stock/movement` | Admin/Manager | Record movement |
+
+### Orders
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/orders` | Auth | List all (paginated) |
+| `GET` | `/orders/{id}` | Auth | Order detail |
+| `POST` | `/orders` | Auth | Create order |
+| `PUT` | `/orders/{id}/status` | Admin/Manager | Update status |
+
+### Dashboard
 | Method | Endpoint | Access |
-|--------|----------|--------|
-| POST | /auth/login | Public |
-| POST | /auth/register | Public |
-| POST | /auth/refresh | Public |
-| POST | /auth/logout | Public |
-| GET | /products | Auth |
-| POST | /products | Admin/Manager |
-| GET | /orders | Auth |
-| POST | /orders | Auth |
-| PUT | /orders/{id}/status | Admin/Manager |
-| GET | /stock/movements | Auth |
-| POST | /stock/movement | Admin/Manager |
-| GET | /dashboard/stats | Auth |
+|---|---|---|
+| `GET` | `/dashboard/stats` | Auth |
 
 ---
 
-## 🏗 Project Structure
+## Project Structure
 
 ```
 ioms/
-├── backend/                    # Spring Boot application
-│   ├── src/main/java/com/inventory/
-│   │   ├── config/             # Security, JWT, OpenAPI config
-│   │   ├── controller/         # REST controllers
-│   │   ├── service/            # Business logic
-│   │   ├── repository/         # Spring Data JPA repos
-│   │   ├── entity/             # JPA entities + enums
-│   │   ├── dto/                # Request/Response DTOs
-│   │   ├── security/           # JWT filter + provider
-│   │   └── exception/          # Global exception handler
+├── backend/
+│   └── src/main/java/com/inventory/
+│       ├── config/          # Security, JWT, OpenAPI, CORS
+│       ├── controller/      # REST controllers
+│       ├── service/         # Business logic
+│       ├── repository/      # Spring Data JPA repos
+│       ├── entity/          # JPA entities + enums
+│       ├── dto/             # Request/Response DTOs
+│       ├── security/        # JWT filter + provider
+│       └── exception/       # Global exception handler (@ControllerAdvice)
 │   └── src/main/resources/
 │       ├── application.yml
-│       └── db/migration/       # Flyway SQL migrations
-├── frontend/                   # React application
+│       └── db/migration/    # Flyway SQL migrations + seed data
+│
+├── frontend/
 │   └── src/
-│       ├── api/                # Axios config + API calls
-│       ├── context/            # AuthContext
-│       ├── components/         # Layout, Sidebar
-│       └── pages/              # All page components
+│       ├── api/             # Axios config + API calls
+│       ├── context/         # AuthContext
+│       ├── components/      # Layout, Sidebar, PrivateRoute
+│       └── pages/           # Dashboard, Products, Orders, Stock, etc.
+│
 ├── docker-compose.yml
 └── .env.example
 ```
 
 ---
 
-## 🔑 Key Design Decisions
+## Role Permissions
 
-**JWT (stateless auth)** — No server-side session storage. Scales horizontally.
-
-**Pessimistic locking on stock** — `SELECT ... FOR UPDATE` prevents race conditions when multiple orders are placed simultaneously for the same product.
-
-**@Transactional on OrderService.create()** — Stock deduction and order creation happen atomically. If stock deduction fails, the order is rolled back entirely.
-
-**Flyway migrations** — Schema versioned in SQL files. Never auto-create in production. Safe to run repeatedly.
-
-**DTO pattern** — Entities never exposed directly in API responses. Prevents over-posting, hides internal structure.
-
-**Soft delete on products** — Setting status=INACTIVE rather than DELETE preserves order history integrity.
-
----
-
-## 📈 Resume Talking Points
-
-- Implemented JWT authentication with BCrypt-12 password hashing and role-based access control
-- Used pessimistic locking (LockModeType.PESSIMISTIC_WRITE) to prevent stock race conditions
-- Built transactional order processing with automatic stock deduction and rollback on failure
-- Designed RESTful APIs with consistent response envelopes and RFC-compliant error responses
-- Containerized with Docker Compose (MySQL + Spring Boot + React/Nginx) for one-command deployment
-- Applied Flyway database migrations for reproducible, versioned schema management
+| Feature | Admin | Manager | Staff |
+|---|:---:|:---:|:---:|
+| View products/orders | ✅ | ✅ | ✅ |
+| Create orders | ✅ | ✅ | ✅ |
+| Create/edit products | ✅ | ✅ | ❌ |
+| Update order status | ✅ | ✅ | ❌ |
+| Stock movements | ✅ | ✅ | ❌ |
+| View reports | ✅ | ✅ | ❌ |
+| Delete products | ✅ | ❌ | ❌ |
+| Manage users | ✅ | ❌ | ❌ |
 
 ---
 
-## 📄 License
-No license file is included yet. Add a `LICENSE` file (e.g., MIT) if you plan to share or reuse this code publicly.
+## Key Design Decisions
+
+**Pessimistic locking on stock**
+`LockModeType.PESSIMISTIC_WRITE` on the product row during order creation. Prevents overselling when concurrent requests hit the same product simultaneously.
+
+**Atomic order creation**
+`@Transactional` on `OrderService.create()` — stock deduction and order record write happen in a single transaction. If anything fails, both roll back. No partial state.
+
+**Soft deletes on products**
+Setting `status=INACTIVE` instead of `DELETE FROM`. Preserves referential integrity on historical orders — you can always see what was ordered, even if the product no longer exists.
+
+**Flyway migrations**
+Schema versioned in SQL files under `db/migration/`. `ddl-auto: validate` in production — Hibernate never auto-creates or alters tables. Safe, repeatable, and auditable.
+
+**DTO pattern**
+Entities are never returned directly from API responses. Separate `Request` and `Response` DTOs prevent over-posting attacks and decouple the API contract from the database schema.
+
+**JWT stateless auth**
+No server-side session storage. Scales horizontally — any instance can validate any token using the shared secret.
+
+---
+
+## Environment Variables
+
+```bash
+# .env (copy from .env.example)
+DB_PASSWORD=your_mysql_password
+JWT_SECRET=your_jwt_secret_min_32_chars
+MAIL_USERNAME=your@gmail.com
+MAIL_PASSWORD=your_app_password
+```
+
+---
+
+## License
+
+No license file included. Add a `LICENSE` file (e.g. MIT) before sharing or reusing publicly.
