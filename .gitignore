@@ -1,5 +1,9 @@
 # Environment
 .env
+railway.env
+vercel.env
+*.env
+!.env.example
 
 # Maven
 backend/target/
