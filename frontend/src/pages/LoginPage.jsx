@@ -53,7 +53,9 @@ export default function LoginPage() {
         </form>
         <div style={{ marginTop:24, padding:16, background:'var(--bg-tertiary)', borderRadius:'var(--radius)', border:'1px solid var(--border)' }}>
           <p style={{ fontSize:12, color:'var(--text-muted)', marginBottom:8, fontWeight:600 }}>DEMO CREDENTIALS</p>
-          {[['admin','password','Admin'],['manager','password','Manager'],['staff','password','Staff']].map(([u,p,r]) => (
+          {[['admin','Admin@123','Admin'],
+            ['manager','Manager@123','Manager'],
+            ['staff','Staff@123','Staff']].map(([u,p,r]) => (
             <div key={u} style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'var(--text-secondary)', marginBottom:4, cursor:'pointer' }}
               onClick={() => setForm({ username: u, password: p })}>
               <span style={{ color:'var(--accent)' }}>{u}</span><span>{p}</span><span style={{ color:'var(--text-muted)' }}>{r}</span>

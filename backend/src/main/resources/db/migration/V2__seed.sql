@@ -1,10 +1,15 @@
 -- V2__seed.sql  (passwords are BCrypt of Admin@123, Manager@123, Staff@123)
-INSERT INTO roles (name) VALUES ('ROLE_ADMIN'), ('ROLE_MANAGER'), ('ROLE_STAFF');
+-- roles
+INSERT INTO roles (name) VALUES 
+('ROLE_ADMIN'),('ROLE_MANAGER'),('ROLE_STAFF')
+  ON DUPLICATE KEY UPDATE name = name;
 
+-- users  
 INSERT INTO users (username, email, password, full_name) VALUES
-('admin',   'admin@inventory.com',   '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', 'Admin User'),
-('manager', 'manager@inventory.com', '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', 'Manager User'),
-('staff',   'staff@inventory.com',   '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', 'Staff User');
+('admin',   'admin@inventory.com',   '$2b$12$8pZDMTrxmRP5yYC1O5pvw.trQhlY0ecdebFpA6JNgEAjxbvsqOn46', 'Admin User'),
+('manager', 'manager@inventory.com', '$2b$12$gQ5ggXBwjEctXG.80A0Mtu9A68XAeV1Vpfu5P0OVh1U9TDyAR/Dza', 'Manager User'),
+('staff',   'staff@inventory.com',   '$2b$12$YBoXbZWuT2WXcrt260xSlelpRbMYkDEgiDyqHv80hic4zvhGv7fjy', 'Staff User')
+  ON DUPLICATE KEY UPDATE username = username;
 
 INSERT INTO user_roles (user_id, role_id) VALUES (1,1),(2,2),(3,3);
 
